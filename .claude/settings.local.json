@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(cd C:\\\\pg\\\\ANETO-Shopify\\\\aneto-shopify-horizon_gittest:*)",
+      "Bash(node:*)"
+    ]
+  }
+}
