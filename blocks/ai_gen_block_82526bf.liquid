@@ -1,0 +1,408 @@
+{% doc %}
+  @prompt
+    画像の上にコレクション名とボタン, カスタムタイトルのフォントを変更
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-collection-banner-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    display: block;
+  }
+
+  .ai-collection-banner__image-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: {{ block.settings.image_height }}px;
+  }
+
+  .ai-collection-banner__image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-collection-banner__placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-collection-banner__placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    max-height: 500px;
+  }
+
+  .ai-collection-banner__overlay-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: {{ block.settings.overlay_color }};
+    opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+  }
+
+  .ai-collection-banner__content-{{ ai_gen_id }} {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 2;
+    width: 90%;
+    max-width: 600px;
+  }
+
+  .ai-collection-banner__title-{{ ai_gen_id }} {
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.title_size }}px;
+    margin: 0 0 {{ block.settings.spacing }}px;
+    font-weight: 600;
+    font-family: {{ block.settings.title_font.family }}, {{ block.settings.title_font.fallback_families }};
+    font-weight: {{ block.settings.title_font.weight }};
+    font-style: {{ block.settings.title_font.style }};
+  }
+
+  .ai-collection-banner__button-{{ ai_gen_id }} {
+    display: inline-block;
+    padding: {{ block.settings.button_padding_vertical }}px {{ block.settings.button_padding_horizontal }}px;
+    background-color: {{ block.settings.button_background }};
+    color: {{ block.settings.button_text_color }};
+    text-decoration: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: {{ block.settings.button_font_size }}px;
+    transition: all 0.3s ease;
+    border: {{ block.settings.button_border_width }}px solid {{ block.settings.button_border_color }};
+  }
+
+  .ai-collection-banner__button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_background }};
+    color: {{ block.settings.button_hover_text_color }};
+    border-color: {{ block.settings.button_hover_border_color }};
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-collection-banner__image-wrapper-{{ ai_gen_id }} {
+      height: {{ block.settings.mobile_image_height }}px;
+    }
+
+    .ai-collection-banner__title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.mobile_title_size }}px;
+    }
+
+    .ai-collection-banner__button-{{ ai_gen_id }} {
+      font-size: {{ block.settings.mobile_button_font_size }}px;
+    }
+  }
+{% endstyle %}
+
+<div class="ai-collection-banner-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-collection-banner__image-wrapper-{{ ai_gen_id }}">
+    {% if block.settings.image %}
+      <img
+        src="{{ block.settings.image | image_url: width: 2000 }}"
+        alt="{{ block.settings.image.alt | escape }}"
+        loading="lazy"
+        width="{{ block.settings.image.width }}"
+        height="{{ block.settings.image.height }}"
+        class="ai-collection-banner__image-{{ ai_gen_id }}"
+      >
+    {% else %}
+      <div class="ai-collection-banner__placeholder-{{ ai_gen_id }}">
+        {{ 'collection-apparel-1' | placeholder_svg_tag }}
+      </div>
+    {% endif %}
+
+    {% if block.settings.show_overlay %}
+      <div class="ai-collection-banner__overlay-{{ ai_gen_id }}"></div>
+    {% endif %}
+
+    <div class="ai-collection-banner__content-{{ ai_gen_id }}">
+      {% if block.settings.collection != blank %}
+        <h2 class="ai-collection-banner__title-{{ ai_gen_id }}">
+          {{ block.settings.collection.title }}
+        </h2>
+      {% elsif block.settings.custom_title != blank %}
+        <h2 class="ai-collection-banner__title-{{ ai_gen_id }}">
+          {{ block.settings.custom_title }}
+        </h2>
+      {% endif %}
+
+      {% if block.settings.button_text != blank %}
+        {% if block.settings.collection != blank %}
+          <a
+            href="{{ block.settings.collection.url }}"
+            class="ai-collection-banner__button-{{ ai_gen_id }}"
+          >
+            {{ block.settings.button_text }}
+          </a>
+        {% elsif block.settings.button_link != blank %}
+          <a
+            href="{{ block.settings.button_link }}"
+            class="ai-collection-banner__button-{{ ai_gen_id }}"
+          >
+            {{ block.settings.button_text }}
+          </a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "コレクションバナー",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "画像"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "画像"
+    },
+    {
+      "type": "range",
+      "id": "image_height",
+      "label": "デスクトップ画像の高さ",
+      "min": 200,
+      "max": 800,
+      "step": 50,
+      "unit": "px",
+      "default": 500
+    },
+    {
+      "type": "range",
+      "id": "mobile_image_height",
+      "label": "モバイル画像の高さ",
+      "min": 150,
+      "max": 600,
+      "step": 50,
+      "unit": "px",
+      "default": 300
+    },
+    {
+      "type": "header",
+      "content": "コレクション"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "コレクション"
+    },
+    {
+      "type": "text",
+      "id": "custom_title",
+      "label": "カスタムタイトル"
+    },
+    {
+      "type": "font_picker",
+      "id": "title_font",
+      "label": "タイトルフォント",
+      "default": "figtree_n5"
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "デスクトップタイトルサイズ",
+      "min": 20,
+      "max": 80,
+      "step": 2,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "mobile_title_size",
+      "label": "モバイルタイトルサイズ",
+      "min": 16,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "テキストカラー",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "ボタン"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "ボタンテキスト",
+      "default": "コレクションを見る"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "ボタンリンク"
+    },
+    {
+      "type": "range",
+      "id": "button_font_size",
+      "label": "デスクトップボタンフォントサイズ",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "mobile_button_font_size",
+      "label": "モバイルボタンフォントサイズ",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "button_padding_vertical",
+      "label": "ボタン縦パディング",
+      "min": 8,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "button_padding_horizontal",
+      "label": "ボタン横パディング",
+      "min": 16,
+      "max": 48,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "label": "ボタン角丸",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "button_border_width",
+      "label": "ボタンボーダー幅",
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "unit": "px",
+      "default": 1
+    },
+    {
+      "type": "color",
+      "id": "button_background",
+      "label": "ボタン背景色",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "ボタンテキストカラー",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_border_color",
+      "label": "ボタンボーダーカラー",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_background",
+      "label": "ボタンホバー背景色",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "ボタンホバーテキストカラー",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_border_color",
+      "label": "ボタンホバーボーダーカラー",
+      "default": "#333333"
+    },
+    {
+      "type": "header",
+      "content": "オーバーレイ"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "オーバーレイを表示",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "オーバーレイカラー",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "オーバーレイ不透明度",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "レイアウト"
+    },
+    {
+      "type": "range",
+      "id": "spacing",
+      "label": "タイトルとボタンの間隔",
+      "min": 8,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "デスクトップ幅",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    }
+  ],
+  "presets": [
+    {
+      "name": "コレクションバナー"
+    }
+  ]
+}
+{% endschema %}

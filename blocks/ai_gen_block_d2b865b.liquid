@@ -1,0 +1,369 @@
+{% doc %}
+  @prompt
+    Create a circular text layout block where text is arranged in a circle or curved path. The block should allow merchants to customize the text content and styling., もっと小さく、ロゴくらいの大きさにして、周りのテキストがぐるぐる回るようにしてください。, 中央ロゴ部分は、左下から右上に向かう→画像を固定にして, やはり水平方向に通常通りのレイアウトに戻して
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-circular-text-{{ ai_gen_id }} {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: {{ block.settings.container_padding }}px;
+    background-color: {{ block.settings.background_color }};
+    min-height: {{ block.settings.circle_size }}px;
+  }
+
+  .ai-circular-text-container-{{ ai_gen_id }} {
+    position: relative;
+    width: {{ block.settings.circle_size }}px;
+    height: {{ block.settings.circle_size }}px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .ai-circular-text-svg-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    animation: ai-circular-rotate-{{ ai_gen_id }} {{ block.settings.rotation_speed }}s linear infinite;
+  }
+
+  @keyframes ai-circular-rotate-{{ ai_gen_id }} {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .ai-circular-text-path-{{ ai_gen_id }} {
+    fill: none;
+    stroke: none;
+  }
+
+  .ai-circular-text-text-{{ ai_gen_id }} {
+    font-family: {{ block.settings.text_font.family }}, {{ block.settings.text_font.fallback_families }};
+    font-weight: {{ block.settings.text_font.weight }};
+    font-size: {{ block.settings.font_size }}px;
+    fill: {{ block.settings.text_color }};
+    letter-spacing: {{ block.settings.letter_spacing }}px;
+    text-transform: {% if block.settings.text_uppercase %}uppercase{% else %}none{% endif %};
+  }
+
+  .ai-circular-text-center-content-{{ ai_gen_id }} {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: {{ block.settings.circle_size | times: 0.6 }}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-circular-text-center-logo-{{ ai_gen_id }} {
+    max-width: {{ block.settings.circle_size | times: 0.5 }}px;
+    max-height: {{ block.settings.circle_size | times: 0.5 }}px;
+    width: auto;
+    height: auto;
+  }
+
+  .ai-circular-text-center-title-{{ ai_gen_id }} {
+    font-family: {{ block.settings.center_font.family }}, {{ block.settings.center_font.fallback_families }};
+    font-weight: {{ block.settings.center_font.weight }};
+    font-size: {{ block.settings.center_font_size }}px;
+    color: {{ block.settings.center_text_color }};
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .ai-circular-text-logo-placeholder-{{ ai_gen_id }} {
+    width: {{ block.settings.circle_size | times: 0.5 }}px;
+    height: {{ block.settings.circle_size | times: 0.5 }}px;
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .ai-circular-text-logo-placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.3;
+  }
+
+  {% if block.settings.pause_on_hover %}
+    .ai-circular-text-container-{{ ai_gen_id }}:hover .ai-circular-text-svg-{{ ai_gen_id }} {
+      animation-play-state: paused;
+    }
+  {% endif %}
+
+  @media screen and (max-width: 749px) {
+    .ai-circular-text-container-{{ ai_gen_id }} {
+      width: {{ block.settings.circle_size | times: 0.8 }}px;
+      height: {{ block.settings.circle_size | times: 0.8 }}px;
+    }
+
+    .ai-circular-text-text-{{ ai_gen_id }} {
+      font-size: {{ block.settings.font_size | times: 0.8 }}px;
+    }
+
+    .ai-circular-text-center-title-{{ ai_gen_id }} {
+      font-size: {{ block.settings.center_font_size | times: 0.8 }}px;
+    }
+
+    .ai-circular-text-center-content-{{ ai_gen_id }} {
+      max-width: {{ block.settings.circle_size | times: 0.8 | times: 0.6 }}px;
+    }
+
+    .ai-circular-text-center-logo-{{ ai_gen_id }} {
+      max-width: {{ block.settings.circle_size | times: 0.8 | times: 0.5 }}px;
+      max-height: {{ block.settings.circle_size | times: 0.8 | times: 0.5 }}px;
+    }
+
+    .ai-circular-text-logo-placeholder-{{ ai_gen_id }} {
+      width: {{ block.settings.circle_size | times: 0.8 | times: 0.5 }}px;
+      height: {{ block.settings.circle_size | times: 0.8 | times: 0.5 }}px;
+    }
+  }
+{% endstyle %}
+
+<circular-text-{{ ai_gen_id }}
+  class="ai-circular-text-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-circular-text-container-{{ ai_gen_id }}">
+    {% if block.settings.circular_text != blank %}
+      <svg class="ai-circular-text-svg-{{ ai_gen_id }}" viewBox="0 0 {{ block.settings.circle_size }} {{ block.settings.circle_size }}">
+        <defs>
+          <path
+            id="ai-circular-path-{{ ai_gen_id }}"
+            class="ai-circular-text-path-{{ ai_gen_id }}"
+            d="M {{ block.settings.circle_size | divided_by: 2 }}, {{ block.settings.circle_size | divided_by: 2 }} 
+               m -{{ block.settings.circle_size | divided_by: 2 | minus: 15 }}, 0 
+               a {{ block.settings.circle_size | divided_by: 2 | minus: 15 }},{{ block.settings.circle_size | divided_by: 2 | minus: 15 }} 0 1,1 {{ block.settings.circle_size | minus: 30 }},0 
+               a {{ block.settings.circle_size | divided_by: 2 | minus: 15 }},{{ block.settings.circle_size | divided_by: 2 | minus: 15 }} 0 1,1 -{{ block.settings.circle_size | minus: 30 }},0"
+          />
+        </defs>
+        <text class="ai-circular-text-text-{{ ai_gen_id }}">
+          <textPath href="#ai-circular-path-{{ ai_gen_id }}" startOffset="0%">
+            {{ block.settings.circular_text }}
+          </textPath>
+        </text>
+      </svg>
+    {% endif %}
+
+    <div class="ai-circular-text-center-content-{{ ai_gen_id }}">
+      {% if block.settings.center_logo %}
+        <img
+          src="{{ block.settings.center_logo | image_url: width: 200 }}"
+          alt="{{ block.settings.center_logo.alt | escape }}"
+          class="ai-circular-text-center-logo-{{ ai_gen_id }}"
+          loading="lazy"
+          width="{{ block.settings.center_logo.width }}"
+          height="{{ block.settings.center_logo.height }}"
+        >
+      {% elsif block.settings.center_title != blank %}
+        <h3 class="ai-circular-text-center-title-{{ ai_gen_id }}">{{ block.settings.center_title }}</h3>
+      {% else %}
+        <div class="ai-circular-text-logo-placeholder-{{ ai_gen_id }}">
+          {{ 'image' | placeholder_svg_tag }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</circular-text-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class CircularText{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.adjustTextSpacing();
+        window.addEventListener('resize', () => this.adjustTextSpacing());
+      }
+
+      adjustTextSpacing() {
+        const textElement = this.querySelector('.ai-circular-text-text-{{ ai_gen_id }}');
+        const pathElement = this.querySelector('#ai-circular-path-{{ ai_gen_id }}');
+        
+        if (!textElement || !pathElement) return;
+
+        const textLength = textElement.getComputedTextLength();
+        const pathLength = pathElement.getTotalLength();
+        
+        if (textLength > pathLength * 0.9) {
+          const currentFontSize = parseFloat(getComputedStyle(textElement).fontSize);
+          const newFontSize = currentFontSize * 0.9;
+          textElement.style.fontSize = newFontSize + 'px';
+        }
+      }
+    }
+
+    customElements.define('circular-text-{{ ai_gen_id }}', CircularText{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "回転する円形テキスト",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "円形テキスト"
+    },
+    {
+      "type": "text",
+      "id": "circular_text",
+      "label": "円形テキスト",
+      "default": "PREMIUM QUALITY • SUSTAINABLE DESIGN • PREMIUM QUALITY • SUSTAINABLE DESIGN • "
+    },
+    {
+      "type": "font_picker",
+      "id": "text_font",
+      "label": "フォント",
+      "default": "figtree_n5"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 6,
+      "max": 16,
+      "step": 1,
+      "unit": "px",
+      "label": "フォントサイズ",
+      "default": 10
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "テキストカラー",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "min": 0,
+      "max": 5,
+      "step": 0.5,
+      "unit": "px",
+      "label": "文字間隔",
+      "default": 1
+    },
+    {
+      "type": "checkbox",
+      "id": "text_uppercase",
+      "label": "大文字表示",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "アニメーション設定"
+    },
+    {
+      "type": "range",
+      "id": "rotation_speed",
+      "min": 5,
+      "max": 60,
+      "step": 5,
+      "unit": "秒",
+      "label": "回転速度",
+      "default": 20
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "ホバー時に一時停止",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "サイズ設定"
+    },
+    {
+      "type": "range",
+      "id": "circle_size",
+      "min": 80,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "円のサイズ",
+      "default": 120
+    },
+    {
+      "type": "header",
+      "content": "中央コンテンツ"
+    },
+    {
+      "type": "image_picker",
+      "id": "center_logo",
+      "label": "中央ロゴ"
+    },
+    {
+      "type": "text",
+      "id": "center_title",
+      "label": "中央タイトル（ロゴがない場合）",
+      "default": "LOGO"
+    },
+    {
+      "type": "font_picker",
+      "id": "center_font",
+      "label": "中央フォント",
+      "default": "figtree_n5"
+    },
+    {
+      "type": "range",
+      "id": "center_font_size",
+      "min": 8,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "中央タイトルサイズ",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "center_text_color",
+      "label": "中央タイトルカラー",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "レイアウト"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "背景色",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "container_padding",
+      "min": 0,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "label": "コンテナパディング",
+      "default": 20
+    }
+  ],
+  "presets": [
+    {
+      "name": "回転する円形テキスト"
+    }
+  ]
+}
+{% endschema %}

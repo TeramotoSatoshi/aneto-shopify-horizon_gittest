@@ -1,0 +1,277 @@
+{% comment %}
+  ANETO Performance Navigator & Matrix Map
+  - Integrated Activity vs Warmth Matrix Map
+  - Responsive Design for Shopify Horizon Theme
+{% endcomment %}
+
+<div id="aneto-navigator-{{ section.id }}" class="aneto-navigator-wrapper" style="margin-top: {{ section.settings.margin_top }}px; margin-bottom: {{ section.settings.margin_bottom }}px; padding: 0 20px;">
+  <div id="aneto-root-{{ section.id }}"></div>
+</div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/lucide-react@latest"></script>
+
+<script>
+  (function() {
+    const { useState, createElement, useEffect } = React;
+    const { ShoppingBag, Mountain, Zap, MapPin, Wind, Thermometer, Droplets, Info, LayoutGrid, BarChart2 } = LucideReact;
+
+    const App = () => {
+      const [viewMode, setViewMode] = useState('navigator'); // 'navigator' or 'map'
+      const [activeSeries, setActiveSeries] = useState('SWAY');
+      const [activeGrade, setActiveGrade] = useState('A3');
+
+      const seriesInfo = {
+        SPEAK: {
+          title: 'SPEAK',
+          sub: 'peak',
+          desc: '山頂との対話。過酷な環境下での防護性能と耐久性を重視したエキスパートライン。',
+          icon: createElement(Mountain, { size: 24 }),
+          color: 'bg-slate-900',
+          textColor: 'text-slate-900',
+          mapPos: { x: 75, y: 25 } 
+        },
+        GRUND: {
+          title: 'GRUND',
+          sub: 'run',
+          desc: '大地を駆け抜ける。重力を感じさせない軽量性と、激しい運動時の放熱性に特化したライン。',
+          icon: createElement(Zap, { size: 24 }),
+          color: 'bg-sky-500',
+          textColor: 'text-sky-600',
+          mapPos: { x: 15, y: 85 }
+        },
+        SWAY: {
+          title: 'SWAY',
+          sub: 'way',
+          desc: '都会の道を自由に泳ぐ。街に馴染むデザインと、多収納・撥水機能を備えたアーバンライン。',
+          icon: createElement(MapPin, { size: 24 }),
+          color: 'bg-slate-500',
+          textColor: 'text-slate-600',
+          mapPos: { x: 45, y: 55 }
+        }
+      };
+
+      const gradeInfo = {
+        A1: { label: 'A1', type: 'Minimalist', warmth: 20, water: 10, breath: 95, storage: 20, offset: { x: -10, y: 10 } },
+        A3: { label: 'A3', type: 'Balanced', warmth: 50, water: 60, breath: 60, storage: 70, offset: { x: 0, y: 0 } },
+        A5: { label: 'A5', type: 'Professional', warmth: 95, water: 95, breath: 30, storage: 90, offset: { x: 15, y: -15 } },
+      };
+
+      const currentSpecs = gradeInfo[activeGrade];
+
+      const SpecBar = ({ label, value, icon, color }) => (
+        createElement('div', { className: "flex flex-col gap-2" },
+          createElement('div', { className: "flex justify-between items-center text-[10px] md:text-xs font-bold text-slate-500" },
+            createElement('div', { className: "flex items-center gap-2" },
+              icon, createElement('span', null, label.toUpperCase())
+            ),
+            createElement('span', null, `${value}%`)
+          ),
+          createElement('div', { className: "w-full h-1.5 bg-slate-100 rounded-full overflow-hidden" },
+            createElement('div', { 
+              className: `h-full ${color} transition-all duration-700 ease-out`,
+              style: { width: `${value}%` }
+            })
+          )
+        )
+      );
+
+      const getScene = (s, g) => {
+        const mapping = {
+          'SPEAK-A1': '晴天時のスピード登山。パッカブルで持ち運びを優先したい時に。',
+          'SPEAK-A3': '3シーズンの本格的な縦走。岩場や急な天候変化が予想されるルートに。',
+          'SPEAK-A5': '厳冬期の雪山や豪雨。生命を守るための最強の防護性能が必要な時に。',
+          'GRUND-A1': '真夏のトレーニングやレース。限界まで熱を逃がし、軽さを追求したい時に。',
+          'GRUND-A3': '風の強い日の早朝ランニング。冷気を防ぎつつ、動きやすさを維持したい時に。',
+          'GRUND-A5': '氷点下の雨中ランニング。体温を維持しながら走り続けるための特殊環境に。',
+          'SWAY-A1': '初夏の旅行や日常。室内外の温度差に対応し、さらりとした着心地を求める時に。',
+          'SWAY-A3': '都会のビル風や小雨を凌ぐ通勤・通学。手ぶらでスマートに移動したい時に。',
+          'SWAY-A5': '真冬の都市型極地対応。カバンを持たず、最高峰の防寒性で街を歩く時に。',
+        };
+        return mapping[`${s}-${g}`] || '最適なアクティビティを提案します。';
+      };
+
+      return createElement('div', { className: "max-w-6xl mx-auto font-sans text-slate-900 bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100" },
+        // View Switcher
+        createElement('div', { className: "flex border-b border-slate-100 bg-slate-50" },
+          createElement('button', {
+            onClick: () => setViewMode('navigator'),
+            className: `flex-1 py-4 text-xs font-bold tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${viewMode === 'navigator' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-slate-600'}`
+          }, createElement(LayoutGrid, { size: 16 }), "NAVIGATOR"),
+          createElement('button', {
+            onClick: () => setViewMode('map'),
+            className: `flex-1 py-4 text-xs font-bold tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${viewMode === 'map' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-slate-600'}`
+          }, createElement(BarChart2, { size: 16 }), "PERFORMANCE MAP")
+        ),
+
+        viewMode === 'navigator' ? (
+          createElement('div', { className: "grid grid-cols-1 lg:grid-cols-12" },
+            // Left Content
+            createElement('div', { className: "lg:col-span-5 p-8 md:p-12 border-r border-slate-100" },
+              createElement('section', { className: "mb-10" },
+                createElement('label', { className: "text-[10px] font-black text-slate-300 uppercase tracking-widest mb-6 block" }, "Select Series"),
+                createElement('div', { className: "space-y-3" },
+                  Object.keys(seriesInfo).map(key => (
+                    createElement('button', {
+                      key,
+                      onClick: () => setActiveSeries(key),
+                      className: `w-full flex items-center p-5 rounded-2xl border-2 transition-all duration-300 ${
+                        activeSeries === key ? 'border-slate-900 bg-slate-900 text-white shadow-xl' : 'border-slate-50 bg-slate-50/50 text-slate-400 hover:border-slate-200'
+                      }`
+                    },
+                      createElement('div', { className: `p-2 rounded-xl mr-4 ${activeSeries === key ? 'bg-white/10' : 'bg-white shadow-sm'}` }, seriesInfo[key].icon),
+                      createElement('div', { className: "text-left" },
+                        createElement('div', { className: "font-bold text-lg leading-tight" }, seriesInfo[key].title),
+                        createElement('div', { className: "text-[10px] opacity-40 font-mono" }, `hiding: ${seriesInfo[key].sub}`)
+                      )
+                    )
+                  ))
+                )
+              ),
+              createElement('section', null,
+                createElement('label', { className: "text-[10px] font-black text-slate-300 uppercase tracking-widest mb-6 block" }, "Performance Grade"),
+                createElement('div', { className: "grid grid-cols-3 gap-3" },
+                  Object.keys(gradeInfo).map(key => (
+                    createElement('button', {
+                      key,
+                      onClick: () => setActiveGrade(key),
+                      className: `py-5 rounded-2xl border-2 transition-all ${
+                        activeGrade === key ? 'border-slate-900 bg-slate-50 text-slate-900 font-bold shadow-inner' : 'border-slate-50 text-slate-300 hover:border-slate-200'
+                      }`
+                    },
+                      createElement('div', { className: "text-xl mb-1" }, key),
+                      createElement('div', { className: "text-[9px] uppercase tracking-tighter opacity-60" }, gradeInfo[key].type)
+                    )
+                  ))
+                )
+              )
+            ),
+            // Right Content
+            createElement('div', { className: "lg:col-span-7 p-8 md:p-12 bg-slate-50/30 flex flex-col" },
+              createElement('div', { className: "mb-10" },
+                createElement('h2', { className: `text-5xl md:text-6xl font-black mb-4 tracking-tighter ${seriesInfo[activeSeries].textColor}` }, `${activeSeries} ${activeGrade}`),
+                createElement('p', { className: "text-slate-500 leading-relaxed text-sm md:text-base max-w-lg" }, seriesInfo[activeSeries].desc)
+              ),
+              createElement('div', { className: "bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-10" },
+                createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8" },
+                  createElement(SpecBar, { label: "Warmth", value: currentSpecs.warmth, icon: createElement(Thermometer, { size: 14 }), color: "bg-orange-400" }),
+                  createElement(SpecBar, { label: "Waterproof", value: currentSpecs.water, icon: createElement(Droplets, { size: 14 }), color: "bg-blue-400" }),
+                  createElement(SpecBar, { label: "Breathability", value: currentSpecs.breath, icon: createElement(Wind, { size: 14 }), color: "bg-emerald-400" }),
+                  createElement(SpecBar, { label: "Utility", value: currentSpecs.storage, icon: createElement(ShoppingBag, { size: 14 }), color: "bg-slate-800" })
+                )
+              ),
+              createElement('div', { className: "mt-auto bg-slate-900 text-white p-8 rounded-3xl relative overflow-hidden" },
+                createElement('div', { className: "relative z-10" },
+                  createElement('h3', { className: "text-[10px] font-bold text-white/30 uppercase tracking-[0.3em] mb-4" }, "Recommended Use Case"),
+                  createElement('div', { className: "flex items-start gap-5" },
+                    createElement('div', { className: "p-3 bg-white/10 rounded-2xl" }, createElement(Info, { size: 24 })),
+                    createElement('p', { className: "text-lg md:text-xl font-medium leading-snug" }, getScene(activeSeries, activeGrade))
+                  )
+                ),
+                createElement('div', { className: `absolute -right-12 -bottom-12 w-40 h-40 rounded-full blur-3xl opacity-30 ${seriesInfo[activeSeries].color}` })
+              )
+            )
+          )
+        ) : (
+          // Matrix Map View
+          createElement('div', { className: "p-8 md:p-16 bg-white" },
+            createElement('div', { className: "max-w-4xl mx-auto" },
+              createElement('div', { className: "flex justify-between items-end mb-6" },
+                createElement('div', { className: "text-xs font-black bg-cyan-400 text-white px-4 py-1.5 uppercase tracking-widest" }, "行動量 / ACTIVITY"),
+                createElement('div', { className: "text-xs font-black bg-rose-400 text-white px-4 py-1.5 uppercase tracking-widest" }, "保温性 / WARMTH")
+              ),
+              createElement('div', { className: "relative aspect-square md:aspect-video bg-slate-50 border-l-4 border-b-4 border-slate-900 overflow-hidden shadow-inner" },
+                // Grid Background
+                createElement('div', { className: "absolute inset-0 grid grid-cols-4 grid-rows-4 opacity-[0.05]" },
+                  Array(16).fill(0).map((_, i) => createElement('div', { key: i, className: "border-r border-b border-slate-900" }))
+                ),
+                // Gradient Overlay
+                createElement('div', { className: "absolute inset-0 opacity-[0.1] pointer-events-none", style: { background: 'linear-gradient(135deg, #06b6d4 0%, #ffffff 50%, #f43f5e 100%)' } }),
+                
+                // Nodes
+                Object.keys(seriesInfo).map(sKey => 
+                  Object.keys(gradeInfo).map(gKey => {
+                    const series = seriesInfo[sKey];
+                    const grade = gradeInfo[gKey];
+                    const posX = series.mapPos.x + grade.offset.x;
+                    const posY = series.mapPos.y + grade.offset.y;
+                    const isSelected = activeSeries === sKey && activeGrade === gKey;
+
+                    return createElement('button', {
+                      key: `${sKey}-${gKey}`,
+                      onClick: () => { setActiveSeries(sKey); setActiveGrade(gKey); setViewMode('navigator'); },
+                      className: `absolute group transition-all duration-500 flex flex-col items-center -translate-x-1/2 -translate-y-1/2 ${isSelected ? 'z-30 scale-125' : 'z-10 opacity-60 hover:opacity-100 hover:z-20'}`,
+                      style: { left: `${posX}%`, top: `${100 - posY}%` }
+                    },
+                      createElement('div', { className: `w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center border-2 transition-all shadow-xl ${isSelected ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200 text-slate-400'}` },
+                        series.icon
+                      ),
+                      createElement('div', { className: `mt-2 px-3 py-1 rounded-full text-[9px] md:text-[11px] font-black whitespace-nowrap shadow-md transition-all ${isSelected ? 'bg-slate-900 text-white' : 'bg-white text-slate-500'}` },
+                        `${sKey} ${gKey}`
+                      )
+                    );
+                  })
+                )
+              ),
+              createElement('div', { className: "mt-10 grid grid-cols-3 gap-4 text-center text-[11px] font-black text-slate-300 tracking-widest" },
+                createElement('div', null, "← 軽量・高通気"),
+                createElement('div', null, "ANETO PERFORMANCE MATRIX"),
+                createElement('div', null, "高断熱・防風 →")
+              )
+            )
+          )
+        )
+      );
+    };
+
+    const renderApp = () => {
+      const rootElement = document.getElementById('aneto-root-{{ section.id }}');
+      if (rootElement) {
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(createElement(App));
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderApp);
+    } else {
+      renderApp();
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "ANETO Navigator",
+  "settings": [
+    {
+      "type": "range",
+      "id": "margin_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Margin Top",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "margin_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Margin Bottom",
+      "default": 40
+    }
+  ],
+  "presets": [
+    {
+      "name": "ANETO Navigator"
+    }
+  ]
+}
+{% endschema %}
